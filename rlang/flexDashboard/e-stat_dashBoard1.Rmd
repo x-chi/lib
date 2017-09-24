@@ -1,0 +1,1611 @@
+---
+title: "e-stat_ダッシュボード"
+author: "x-chi"
+output: 
+  flexdashboard::flex_dashboard:
+    social: menu
+    source_code: embed
+    vertical_layout: scroll
+runtime: shiny
+---
+
+
+
+```{r global, include=FALSE}
+# load data in 'global' chunk so it can be shared by all users of the dashboard
+
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(DT)
+library(crosstalk)
+library(datasets)
+
+
+library(devtools)
+library(estatapi)
+
+
+## e-stat のapi
+myappId <- "ここにIDを入れてね"
+eStatID <- "eStatIDを入れてね（"
+
+
+
+
+
+
+df_1 <- estat_getStatsData(
+  appId = myappId,
+  statsDataId = eStatID
+)
+
+
+#資料の名前
+# x$STATISTICS_NAME[1]
+df_1[is.na(df_1)] <- 0
+df_1$value <- as.numeric(df_1$value)
+
+
+
+
+
+
+# write.table(df_1,file = paste0("temp_data_1111111111",".txt"),
+# row.names =FALSE, col.names = TRUE, sep = "\t" )
+
+
+
+
+
+
+if(1==0){
+
+#ここは将来的に、ID指定でのデータ読み込みにする
+
+#データの読み込み
+ setwd( "/home/aaaa/Documents/R_/job_change" )
+# arg_sourceFile = "0003024360_労働力調査_総務省_労働力調査_詳細集計_全都道府県_全国_四半期.txt"
+ arg_sourceFile = "temp_data_1111111111.txt"
+
+
+df_1 <- read_tsv(arg_sourceFile, col_names = TRUE, col_types = NULL,
+  locale = default_locale(), na = c("", "NA"), quoted_na = TRUE,
+  quote = "\"", comment = "", trim_ws = TRUE)
+
+} # if(1==0){
+
+
+
+
+df_3 <- df_1
+
+
+#カラム名をアルファベットと数字に変換
+for( x1  in  1:length(df_3[1,]) ){
+  names(df_3)[x1] <- paste0(  "a",x1  )
+}
+
+
+# 日本語カラム名 と アルファベット列名の対応表
+id_colNameTable_DF <- rbind( names(df_3) , names(df_1) )
+id_colNameTable_DF <- t ( id_colNameTable_DF ) 
+
+
+```
+
+
+
+
+
+
+
+
+Column {data-width=100} 
+-------------------------------------
+
+
+
+
+
+### 設定
+
+```{r}
+#  a1 などのアルファベット列名 と日本語列名の組み合わせを
+#  リストへ渡すための処理
+for( x2 in 1:length(id_colNameTable_DF[,1])  ){
+
+    if(x2==1){
+      str2 =paste0('"',id_colNameTable_DF[x2,2] ,'"="',     
+      id_colNameTable_DF[x2,1],'"'
+    )
+
+    }else{
+      str2 =paste0(   str2  ,"," , '"',id_colNameTable_DF[x2,2] ,'"="',     
+      id_colNameTable_DF[x2,1],'"'
+      )
+    }
+
+}
+
+
+
+eval(parse(text = paste(  
+ 'selectInput("slct_ND_colname1", label = h5("絞込1_カラム"), choices = list(', str2  , '),  selected = "--")'
+  )))
+
+
+
+
+
+```
+
+
+```{r}
+
+textInput(inputId = "slct_ND_value1",label= "", value =  "")
+
+
+```
+
+
+
+
+
+
+
+
+
+
+```{r}
+#  a1 などのアルファベット列名 と日本語列名の組み合わせを
+#  リストへ渡すための処理
+for( x2 in 1:length(id_colNameTable_DF[,1])  ){
+
+    if(x2==1){
+      str2 =paste0('"',id_colNameTable_DF[x2,2] ,'"="',     
+      id_colNameTable_DF[x2,1],'"'
+    )
+
+    }else{
+      str2 =paste0(   str2  ,"," , '"',id_colNameTable_DF[x2,2] ,'"="',     
+      id_colNameTable_DF[x2,1],'"'
+      )
+    }
+
+}
+
+
+
+eval(parse(text = paste(  
+ 'selectInput("slct_ND_colname2", label = h5("絞込2_カラム"), choices = list(', str2  , '),  selected = "--")'
+  )))
+
+
+
+
+
+```
+
+
+```{r}
+
+textInput(inputId = "slct_ND_value2",label=  "", value =  "")
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+#textInput(inputId = "slct_y_columnName",label=   h5("y軸の項目名"), value =  "a8")
+
+
+
+
+
+#  a1 などのアルファベット列名 と日本語列名の組み合わせを
+#  リストへ渡すための処理
+for( x2 in 1:length(id_colNameTable_DF[,1])  ){
+
+    if(x2==1){
+      str2 =paste0('"',id_colNameTable_DF[x2,2] ,'"="',     
+      id_colNameTable_DF[x2,1],'"'
+    )
+
+    }else{
+      str2 =paste0(   str2  ,"," , '"',id_colNameTable_DF[x2,2] ,'"="',     
+      id_colNameTable_DF[x2,1],'"'
+      )
+    }
+
+}
+
+
+
+eval(parse(text = paste(  
+ 'selectInput("slct_y_columnName", label = "@y軸", choices = list(', str2  , '),  selected = 1)'
+  )))
+
+
+
+
+
+
+# ★これからやること
+# 各項目のユニークの表示を 各列の構成要素  で見られるようにする
+# 絞り込み条件をもう1つ増やす
+# 絞り込み条件をプルダウンできるようにする
+# 条件を複数入れられるようにする
+
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Column {.tabset}
+-------------------------------------
+
+
+### ヒートマップ
+
+```{r}
+
+
+
+
+
+renderPlot({
+
+
+
+
+
+#データフレームを2つ複製しておき、
+#片方は日本語で指定、それを移植することで
+#ggplot2で描画する
+
+
+
+#末尾の値や時間軸などの列の名前を控えておく
+    valueCol1 <- paste0( "a",length(df_1[1,]) ) 
+    valueUnit <- paste0( "a",( length(df_1[1,]) -1)    ) 
+    date <- paste0( "a",( length(df_1[1,]) -2)    ) 
+    date_arrangeCol <- paste0( "a",( length(df_1[1,]) -3)    ) 
+
+
+
+
+y_axis1 <- input$slct_y_columnName
+
+
+
+
+
+# 集計のためにグループ化(絞り込み条件なし)
+df_4 <- df_3 %>%
+group_by_(  y_axis1 ,add = TRUE  )    %>%
+group_by_(  date ,add = TRUE  )     %>%
+group_by_(  date_arrangeCol ,add = TRUE  )
+
+
+
+# 集計のためにグループ化（絞込条件1あり）
+
+
+# エラー避けの確認（inputがnullでエラー吐く）
+nullCatchStr1 <- paste0(input$slct_ND_value1,"--")
+nullCatchStr2 <- paste0(input$slct_ND_value2,"--")
+
+
+#これは単体の場合（単体でなければこれが適応される）
+filterStr1 <-  input$slct_ND_colname1
+filterStr2 <-  paste0( "'",input$slct_ND_value1 ,"'")
+str1 <- paste( filterStr1 ," == ", filterStr2 )
+
+filterStr3 <-  input$slct_ND_colname2
+filterStr4 <-  paste0( "'",input$slct_ND_value2 ,"'")
+str5 <- paste( filterStr3 ," == ", filterStr4 )
+
+
+
+library(stringr)
+
+
+#複数指定の場合
+if(  nullCatchStr1 !="--"  ){
+  multipleValue1 <-  str_count( input$slct_ND_value1 , ";")
+  if( multipleValue1 != 0  ){
+
+    tempSplit <-  str_split(  input$slct_ND_value1 ,";")
+
+
+print(tempSplit)
+
+
+    for( x3  in 1:length(tempSplit[[1]])   ){
+      
+
+      if(x3 == 1){
+       str_temp1 <- paste0( "c('", tempSplit[[1]][[x3]]    )
+      }else{
+       str_temp1 <- paste0(  str_temp1,"','", tempSplit[[1]][[x3]]  )
+      }
+    }
+
+    str_temp1 <-  paste0(str_temp1,"')" )
+
+    filterStr1 <-  input$slct_ND_colname1
+    str1 <- paste( filterStr1 ," %in% ", str_temp1 )
+
+
+    temp1 <- paste( "str1____" , str1 ) 
+    print(temp1)
+  }
+}
+
+
+
+
+
+if( nullCatchStr2 !="--"  ){
+cat("aaaaaaaaa")
+  multipleValue5 <-  str_count( input$slct_ND_value2 , ";")
+  if( multipleValue5 != 0  ){
+
+    tempSplit2 <-  str_split(  input$slct_ND_value2 ,";")
+
+
+print(tempSplit2)
+
+
+    for( x4  in 1:length(tempSplit2[[1]])   ){
+      
+
+      if(x4 == 1){
+       str_temp2 <- paste0( "c('", tempSplit2[[1]][[x3]]    )
+      }else{
+       str_temp2 <- paste0(  str_temp2,"','", tempSplit2[[1]][[x3]]  )
+      }
+    }
+
+    str_temp2 <-  paste0(str_temp2,"')" )
+
+    filterStr5 <-  input$slct_ND_colname2
+    str5 <- paste( filterStr5 ," %in% ", str_temp2 )
+
+
+    temp1 <- paste( "str5____" , str5 ) 
+    print(temp1)
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+if( nullCatchStr1 !="--"  ){
+    df_4 <- df_3 %>%
+    dplyr::filter_(   str1   ) %>%
+    group_by_(  y_axis1 ,add = TRUE  )    %>%
+    group_by_(  date ,add = TRUE  )     %>%
+    group_by_(  date_arrangeCol ,add = TRUE  )
+}
+
+
+
+# 集計のためにグループ化（絞込条件1,2あり）
+if( all(  ( nullCatchStr1 !="--" ) && (  nullCatchStr2 !="--" ) )  ){
+    # 集計のためにグループ化
+    df_4 <- df_3 %>%
+    dplyr::filter_(   str1   ) %>%
+    dplyr::filter_(   str5   ) %>%
+    group_by_(  y_axis1 ,add = TRUE  )    %>%
+    group_by_(  date ,add = TRUE  )     %>%
+    group_by_(  date_arrangeCol ,add = TRUE  )
+}
+
+
+
+
+
+
+
+# グループ化したものを集計サマライズ
+eval(parse(text = paste(
+"df_4 <- df_4 %>%",
+"summarise( valueCol1 = sum(",  valueCol1 , "))"
+)))
+
+
+eval(parse(text =paste(
+"g <- ggplot( df_4, aes( x=  as.factor(  reorder( ", date ,", as.numeric(",date_arrangeCol ,"))  ) ,y=  as.factor(", y_axis1 ,")  ))"
+)
+  ))
+
+
+
+g <- g + theme_bw()
+g <- g +geom_tile(aes(fill= as.numeric( valueCol1 )  )) 
+g <- g +scale_fill_gradient(low="grey",high="red")
+g <- g +labs(x = "",y = "")
+g <- g +scale_x_discrete(expand = c(0, 0))
+g <- g +scale_y_discrete(expand = c(0, 0))
+g <- g +theme(axis.ticks = element_blank(),
+  axis.text.x = element_text(angle = 280, hjust = 0))
+
+plot(g)
+
+
+
+
+
+
+
+
+
+
+
+
+})
+
+
+
+
+
+
+
+
+
+```
+
+
+### 項目選択
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+
+
+
+### カラム名一覧
+```{r}
+renderTable( id_colNameTable_DF )
+
+```
+
+
+
+
+### 各列の構成要素
+```{r}
+
+
+
+
+
+
+
+#比較用に列名をつける
+colnames(id_colNameTable_DF )<- c("col1","col2")
+id_colNameTable_DF2 <- data.frame(id_colNameTable_DF)
+
+
+
+
+
+for( x2 in   1: (  length( df_3[1,]  ) -4   )  ){
+
+eval(parse(text = paste(  "uniqueValueDf1 <- df_3  %>% dplyr::distinct(", names(df_3[,x2]  ) ,",.keep_all = FALSE)"   )))
+
+
+
+
+
+
+
+tempColName1<- names(uniqueValueDf1[,1])
+
+
+
+
+str3 <-  paste0( 'col1', " == '",tempColName1,"'" )
+tempDf3 <-  id_colNameTable_DF2 %>%
+dplyr::filter_( str3  )  %>%
+select( col2 )
+
+uniqueValueDf1$colname1    <-  tempDf3[1,1]
+
+
+colnames(uniqueValueDf1) <- c("value","columnName")
+uniqueValueDf1 <- uniqueValueDf1 %>% select( columnName,value  )
+
+
+
+if(x2 == 1){
+
+uniqueValueMargeDf  <-  uniqueValueDf1
+
+
+}
+
+
+else{
+
+uniqueValueMargeDf <- rbind(uniqueValueMargeDf, uniqueValueDf1 )
+ 
+}
+
+if(1==0){
+
+} # if(1==0){
+
+
+}
+
+
+
+
+  DT::datatable(uniqueValueMargeDf, options = list(
+    bPaginate = FALSE
+  ))
+
+```
+
+
+
+
+
+
+
+### @条件コピペ用
+```{r}
+
+
+
+
+renderText({ 
+ paste(  "eStatID:",eStatID,"絞込カラム1:", input$slct_ND_colname1, "絞込内容1:",input$slct_ND_value1 
+  ) 
+}) #これでサイト内にリンクで動的な文字出せる
+```
+
+
+
+
+### kakunin
+```{r}
+
+
+
+
+
+renderText({ 
+
+a11 <- is.na(input$slct_ND_value1)
+a22 <- is.na(input$slct_ND_value2)
+
+ paste(  "a11:",a11,"a22:", a22 ) 
+}) #これでサイト内にリンクで動的な文字出せる
+
+
+
+```
+
+
+
+
+
+
+
+### 全データ（重い）
+```{r}
+#ここは常に全て表示される
+  DT::datatable(df_1, options = list(
+    bPaginate = FALSE
+  ))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#参考
+
+  
+if(1==0){
+title1 = "性別"
+ selectInput("slct_sex", label = h6(title1), 
+    choices = list("男" = "男", "女" = "女"), 
+    selected = 1)
+} # if(1==0){
+
+
+
+#<br> は改行として使用可能
+
+
+
+
+
+
+if(1==0){
+#ファイル読み込み
+    fileInput("file1", "Choose CSV File",
+        accept = c(
+          "text/csv",
+          "text/comma-separated-values,text/plain",
+          ".csv")  )
+}
+
+
+
+
+# renderPrint({  input$slct_sex }) #これでサイト内にリンクで動的な文字出せる
+
+
+
+
+
+
+
+
+
+if(1==0){
+#ラジオボタン
+  radioButtons("dist", "Distribution type:",
+               c("Normal" = "norm",
+                 "Uniform" = "unif",
+                 "Log-normal" = "lnorm",
+                 "Exponential" = "exp"))
+}
+
+
+
+if(1==0){
+#スライダー
+  sliderInput("bins", "Number of bins:", 
+            min = 1, max = 50, value = 30)
+}
+
+
+
+
+if(1==0){
+
+#絞り込まれたデータが常に更新されるはず
+# だったが、うまくいかなかったので保留
+
+  DT::renderDataTable({
+  df_4
+})
+
+} # if(1==0){
+
+
+
+
+
+if(1==0){
+ selectInput("slct_y_columnName", label = h6(title1), 
+    choices = list("男" = "男", "女" = "女"), 
+    selected = 1)
+} # if(1==0){
+
+
+
+
+
+
+
+#  renderText({ Inputs_side$slct_sex }) #これでサイト内にリンクで動的な文字出せる
+
+
+
+
+
+
+
+
+#  titlePanel("Hello Shiny!")  #改行のあるテキスト、大きい
+#  tmainPanel("dddddddddddd") #改行のないテキスト
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
