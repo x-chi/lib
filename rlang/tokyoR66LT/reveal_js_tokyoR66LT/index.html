@@ -1,0 +1,441 @@
+Noizu<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+
+
+				<section data-markdown data-separator="^\n>>>\n$"
+				data-separator-vertical="^\n--\n$">
+
+
+<!--
+もし、将来的に可能なら、formでユーザー名などを拾って、
+資料内に展開する。ただ、簡単でなさそう
+http://jsfiddle.net/B9r22/20/
+
+<h2>Form</h2>
+<section>
+  <form action="#">
+      win_mac: <input type="text" name="win_mac" data-name="win_mac"/><br/>
+      userName: <input type="text" name="userName" data-name="userName"/><br/>
+      <button type="submit">Submit</button>
+</section>
+<h2>JSON</h2>
+<p id="json"></p>
+
+
+>>>
+-->
+
+
+
+					<script type="text/template">
+
+
+<!-- パスの書き方でmac とwinの両方対応ができなくなるため、画像は直下に置く -->
+
+
+
+## rtweetで、妊婦DBを作ろう
+発表者： X_chi
+
+
+>>>
+
+### 自己紹介
+
+<font size="6">
+<br>
+Twitter： X_chi<br>
+    （※エックス値 みたいな感じで読んでください）<br>
+<br>
+・広告代理店勤務<br>
+・（一応）データ分析職<br>
+・データ下処理、加工、ビジュアライズの業務が多い<br>
+・モデリングする機会が少ない<br>
+・Tableauを使う同僚のサポート<br>
+<br>
+・趣味：写真、自転車
+
+</font>
+
+>>>
+
+## 概要
+
+
+twitterから妊婦関連のツイートを探し、<br>
+妊婦のDBを作ります<br>
+
+--
+
+## 課題感
+
+・rtweet、SQLite単体の解説ブログは多いが<br>
+結合してアプリとして使う際のTipsがなかった<br>
+<br>
+・最終的には簡単なアプリが完成したが、<br>
+僕自身はかなりハマッて苦労した<br>
+<br>
+・業務でtweet分析をしたいが、解説ブログでは<br>
+データ蓄積のフェーズは飛ばされがち
+
+--
+
+## 妊婦のドメイン知識
+
+<font size="6">
+
+・妊婦には悪阻（つわり）がある<br>
+・マタママ（マタニティママ）などの<br>
+専門用語がある<br>
+
+・妊娠から出産までは40週（280日目が目安）<br>
+だが、遅い人も早い人もいる<br>
+
+・出産予定日の確度は高くない<br>
+
+・出産が近くなると、<br>
+夫は飲み会に行くと怒られるようになる<br>
+
+</font>
+
+--
+
+![コウノドリ](kounodori1.PNG)
+
+
+--
+
+## 妊婦のドメイン知識（2）
+
+超ビッグノイズ！<br>
+
+ドラマ『コウノドリ』<br>
+TBS 金曜22時〜<br>
+<http://www.tbs.co.jp/kounodori/>
+
+
+<font size="6">
+<br>
+かつての妊婦たちが、このドラマを<br>
+みてつぶやいてしまう<br>
+</font>
+
+
+>>>
+
+
+## 今回使用したRパッケージ
+
+・rtwwet<br>
+・DBI<br>
+・SQLite<br>
+<br>
+・shiny<br>
+・shinydashbouard<br>
+<br>
+・Rmd<br>
+・RMeCab<br>
+
+>>>
+
+
+### システム構成
+
+![システム構成図](ninpu_db_gainen1.PNG)
+
+
+>>>
+
+### twitterからのデータ取得
+
+--
+
+## 導入方法
+・前人たちの優れた説明を参照しましょう<br>
+
+<font size="4">
+twitteRパッケージがdeprecated（廃止予定）になっていたのでいちおう注意しましょう。
+<http://notchained.hatenablog.com/entry/2017/01/20/195619><br>
+
+httrのOAuth1.0のバグが直ったのでrtweetもガンガン使っていきましょう
+<http://notchained.hatenablog.com/entry/2017/07/25/053842><br>
+
+公式ドキュメント
+<http://https://cran.r-project.org/web/packages/rtweet/rtweet.pdf><br>
+
+
+※2017年春頃にtokyoRでrtweetの説明してくれた方が<br>
+いらっしゃったと思います。<br>
+もし覚えている方は、その資料もわかりやすかったです。
+</font>
+
+
+
+--
+
+#### rtweetとDBでのデータ蓄積のコツ(1)
+
+・rtweetは制御がききにくい<br>
+→少量取得、指定した数だけのツイート取得はできない<br>
+ →どんぶり勘定でもいけるようにシステム構成する<br>
+
+--
+
+#### rtweetとDBでのデータ蓄積のコツ(2)
+
+・データは必ずDBに入れる<br>
+ →条件にもよるが、データは2GBまでは<br>
+   増えると考えて組むべき<br>
+
+--
+
+#### rtweetとDBでのデータ蓄積のコツ(3)
+
+ ・最終的にDBからデータを取得するために、<br>
+ あらかじめ分類フラグなどを用意<br>
+
+・最終的に数百MB～ のデータを扱う前提で<br>
+考えておくこと
+
+--
+
+#### rtweetとDBでのデータ蓄積のコツ(4)
+ツイートは必ず重複カットしてDBへ入れること<br>
+（※最大11GBまで溜めてしまいました。<br>
+重複カットすれば1.2GBなど）<br>
+
+--
+
+update のコマンドをするときには、get queryではエラーを
+吐く、○○を使うこと
+
+DBロックとの戦い
+database is locked  と戦う
+
+トランザクション
+
+
+tryCatchでエラーを逃す
+
+--
+
+#### rtweetとDBでのデータ蓄積のコツ(5)
+とにかくcrontabで膠着させずに<br>
+ユーザーのデータを取得することを目指す<br>
+
+![こまけえことはいいんだよ](komekee.gif)
+
+
+
+
+
+>>>
+
+### shinyアプリでのユーザー識別
+
+
+--
+
+#### ユーザーの識別問題
+
+ドラマ：コウノドリをはじめとして、
+現在の妊婦以外が、妊娠について<br>
+語ることもしばしばある。<br>
+<br>
+友人、親戚、ペットも妊娠、出産する<br>
+<br>
+→最終的には目grepするしかない！
+
+--
+
+#### 目grep用のアプリを作って対策
+
+--
+
+画面キャプチャ
+
+![アプリ_画面キャプチャ](madayoui_sitenai.png)
+
+
+--
+
+![アプリ_画面キャプチャ_2](madayoui_sitenai.png)
+
+--
+
+
+### shinyアプリの方針
+
+■リッチにするか？<br>
+<font size="6">
+処理は全てshinyで書く<br>
+アプリらしいアプリ<br>
+工数多い<br>
+誰でも使える<br>
+オンライン<br>
+</font>
+
+■素朴にするか？<br>
+<font size="6">
+最低限の構成で済むようにする<br>
+ブラウザにボタンがついただけ<br>
+工数少ない<br>
+自分しか使わない<br>
+オフライン<br>
+</font>
+<br>
+<br>
+→技術的問題と工数で、素朴にした<br>
+
+--
+
+#### shinyアプリのコツ（１）
+
+・DBロックとの戦い<br>
+
+--
+
+#### shinyアプリのコツ（１）
+
+
+
+デバッグのしにくさ<br>
+→printを使う<br>
+
+
+--
+
+#### shinyアプリのコツ（１）
+
+なぜかタイムゾーンがずれる問題
+
+
+
+--
+
+#### shinyアプリのコツ（１）
+
+
+dbGetQuery とdb Execute
+
+
+--
+
+
+>>>
+
+### データ分析結果
+
+・期間ごとに分けて、形態素解析<br>
+＆ワードクラウド
+
+--
+
+・時刻ごとの集計<br>
+
+
+
+
+
+>>>
+
+### まとめ
+
+<font size="6">
+・rtweetは、例外処理で制御する<br>
+・twitterのデータは膨大<br>
+→データの取捨選択軸は先に決めておく<br>
+・shinyアプリは機能の割り切りが大事<br>
+・妊娠中、嫁は不安
+
+</font>
+
+>>>
+
+### 今回の資料の場所とソースコード
+（※ソースコードは汎用化できませんでした）
+<http://madayoui_sitenai><br>
+<http://madayoui_sitenai><br>
+
+>>>
+
+enjoy!
+
+
+
+
+
+					</script><!-- そのままだと書けないので/を余計に書いています -->
+				</section>
+
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+
+
+
+
+
+
+
+
+ $(function() {
+        $('body').on('submit','form',function() {
+            var answers = [];
+            $('input[type="text"]', this).each(function(){
+            answers.push({'name':$(this).data('name'),                       'value':this.value});
+            });
+            var data = {
+                'answers': answers
+            };
+            json = JSON.stringify(data);
+            $('#json').append(json);
+            return false;
+        });    
+    });
+
+
+
+		</script>
+	</body>
+</html>
+
