@@ -1,7 +1,7 @@
 ---
-title: "ninpu_＄うdata"
+title: "妊婦DBのデータまとめ"
 author: "nakakita_kazuyoshi"
-date: "2017年12月3日"
+date: "2017年12月15日"
 output: html_document
 ---
 
@@ -24,7 +24,7 @@ knitr::opts_chunk$set(echo = TRUE,
 	library(readr)
 	library(ggplot2)
 	library(RColorBrewer)
-
+	library(RMeCab)
 
 
 #ここにDBから取得したデータを読込
@@ -49,6 +49,7 @@ setwd(dir1)
 	#出産予定日がないものを外す
 	tw_acount2 <- tw_acount %>%
 	filter(Expected_date_of_birth > 0 )
+
 
 
 
@@ -181,7 +182,7 @@ filter( periodLabel == "ninshin_syoki" )
 wordCloud <- function(twitWord,periond_name,twType){
 
 
-	dir1 <- "/home/aaaa/Desktop"
+	dir1 <- "/home/aaaa/Documents/repo_bitbucket/R_tw/baby_prediction/Rmd/img"
 	setwd(dir1)
 
 	write(tw_margeDf1$text,"temp1.txt") 
@@ -250,6 +251,11 @@ wordCloud <- function(twitWord,periond_name,twType){
 }
 
 
+dir1 <- "/home/aaaa/Documents/repo_bitbucket/R_tw/baby_prediction/Rmd/img"
+setwd(dir1)
+
+
+if(1==0){
 wordCloud( tw_margeDf1_kouki,"tw_margeDf1_kouki","meishi")
 wordCloud( tw_margeDf1_kouki,"tw_margeDf1_kouki","doushi")
 wordCloud( tw_margeDf1_kouki,"tw_margeDf1_kouki","keiyoushi")
@@ -261,9 +267,11 @@ wordCloud( tw_margeDf1_cyuuki,"ninshin_cyuuki","keiyoushi" )
 wordCloud( tw_margeDf1_syoki,"ninshin_syoki","meishi" )
 wordCloud( tw_margeDf1_syoki,"ninshin_syoki","doushi" )
 wordCloud( tw_margeDf1_syoki,"ninshin_syoki","keiyoushi" )
+}
 
 
 
+if(1==0){
 tw_margeDf1$created_at2 <- as.POSIXlt(tw_margeDf1$created_at2)
 tw_margeDf1$tw_hour <- ""
 
@@ -279,7 +287,7 @@ select(periodLabel,tw_hour) %>%
 group_by(periodLabel,tw_hour) %>%
 summarise( tw_hour_count = n() )
 
-
+}
 
 
 
@@ -290,7 +298,7 @@ summarise( tw_hour_count = n() )
 
 ## 出産日（概算）が観測できた妊婦の数
 
-```{r cars}
+```{r aaa}
 length(tw_acount2[,1] )
 ```
 
@@ -299,24 +307,32 @@ length(tw_acount2[,1] )
 ＜今回の定義＞
 妊娠初期（252日前 〜169日前）
 妊娠中期（168日前〜85日前）
-妊娠後期（84日前〜出産）
-
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+妊娠後期（84日前〜出産予定日）
 
 
 
-```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
 
 
 ## 時期別のツイート時間
 
 
+```{r bbb, echo=FALSE}
 
+if(1==0){
 
+g <- ggplot(tw_margeDf_summary1, aes(x=tw_hour, y=tw_hour_count))
+g <- g + geom_bar(stat="identity", aes(fill=name))
+g <- g + facet_wrap(~periodLabel, ncol=1)
+
+plot(g)
+
+}
+
+```
 
 
 
