@@ -1,4 +1,4 @@
-Noizu<!doctype html>
+<!doctype html>
 <html>
 	<head>
 		<meta charset="utf-8">
@@ -30,27 +30,6 @@ Noizu<!doctype html>
 				data-separator-vertical="^\n--\n$">
 
 
-<!--
-もし、将来的に可能なら、formでユーザー名などを拾って、
-資料内に展開する。ただ、簡単でなさそう
-http://jsfiddle.net/B9r22/20/
-
-<h2>Form</h2>
-<section>
-  <form action="#">
-      win_mac: <input type="text" name="win_mac" data-name="win_mac"/><br/>
-      userName: <input type="text" name="userName" data-name="userName"/><br/>
-      <button type="submit">Submit</button>
-</section>
-<h2>JSON</h2>
-<p id="json"></p>
-
-
->>>
--->
-
-
-
 					<script type="text/template">
 
 
@@ -64,7 +43,7 @@ http://jsfiddle.net/B9r22/20/
 
 >>>
 
-### 自己紹介
+### ■自己紹介
 
 <font size="6">
 <br>
@@ -83,7 +62,7 @@ Twitter： X_chi<br>
 
 >>>
 
-## 概要
+## ■概要
 
 
 twitterから妊婦関連のツイートを探し、<br>
@@ -91,20 +70,20 @@ twitterから妊婦関連のツイートを探し、<br>
 
 --
 
-## 課題感
+## ■課題感
 
 ・rtweet、SQLite単体の解説ブログは多いが<br>
 結合してアプリとして使う際のTipsがなかった<br>
 <br>
-・最終的には簡単なアプリが完成したが、<br>
-僕自身はかなりハマッて苦労した<br>
+・簡単なアプリが完成し、簡単な分析結果<br>
+も出したが、かなりハマッて苦労した<br>
 <br>
-・業務でtweet分析をしたいが、解説ブログでは<br>
-データ蓄積のフェーズは飛ばされがち
+・業務でtweet分析をしたいが、解説ブログや<br>
+入門書ではデータ蓄積のフェーズが飛ばされがち
 
 --
 
-## 妊婦のドメイン知識
+## ■妊婦のドメイン知識
 
 <font size="6">
 
@@ -113,7 +92,6 @@ twitterから妊婦関連のツイートを探し、<br>
 専門用語がある<br>
 
 ・妊娠から出産までは40週（280日目が目安）<br>
-だが、遅い人も早い人もいる<br>
 
 ・出産予定日の確度は高くない<br>
 
@@ -129,30 +107,25 @@ twitterから妊婦関連のツイートを探し、<br>
 
 --
 
-## 妊婦のドメイン知識（2）
-
-超ビッグノイズ！<br>
+## ■妊婦のドメイン知識（2）
 
 ドラマ『コウノドリ』<br>
 TBS 金曜22時〜<br>
 <http://www.tbs.co.jp/kounodori/>
 
-
-<font size="6">
-<br>
-かつての妊婦たちが、このドラマを<br>
-みてつぶやいてしまう<br>
-</font>
+超ビッグノイズ！<br>
+→かつての妊婦たちが、このドラマを<br>
+みてつぶやいてしまう
 
 
 >>>
 
 
-## 今回使用したRパッケージ
+## ■今回使用したRパッケージ
 
-・rtwwet<br>
+・rtweet<br>
 ・DBI<br>
-・SQLite<br>
+・RSQLite<br>
 <br>
 ・shiny<br>
 ・shinydashbouard<br>
@@ -163,58 +136,57 @@ TBS 金曜22時〜<br>
 >>>
 
 
-### システム構成
+### ■システム構成
 
 ![システム構成図](ninpu_db_gainen1.PNG)
 
 
 >>>
 
-### twitterからのデータ取得
+## ■twitterからのデータ取得
 
 --
 
-## 導入方法
-・前人たちの優れた説明を参照しましょう<br>
+### ■導入方法
+・先人たちの優れた説明を参照しましょう<br>
 
 <font size="4">
 twitteRパッケージがdeprecated（廃止予定）になっていたのでいちおう注意しましょう。
 <http://notchained.hatenablog.com/entry/2017/01/20/195619><br>
-
 httrのOAuth1.0のバグが直ったのでrtweetもガンガン使っていきましょう
 <http://notchained.hatenablog.com/entry/2017/07/25/053842><br>
-
-公式ドキュメント
+公式ドキュメント<br>
 <http://https://cran.r-project.org/web/packages/rtweet/rtweet.pdf><br>
-
-
-※2017年春頃にtokyoRでrtweetの説明してくれた方が<br>
-いらっしゃったと思います。<br>
-もし覚えている方は、その資料もわかりやすかったです。
 </font>
 
 
 
 --
 
-#### rtweetとDBでのデータ蓄積のコツ(1)
-
+#### ■rtweetとDBでのデータ蓄積のコツ(1)
+<br>
+<br>
 ・rtweetは制御がききにくい<br>
-→少量取得、指定した数だけのツイート取得はできない<br>
- →どんぶり勘定でもいけるようにシステム構成する<br>
+→少量のツイート取得はできない<br>
+ →どんぶり勘定を想定したシステム構成にする<br>
+<br>
+tryCatchでエラーしても<br>
+コードは動き続けるようにする<br>
 
 --
 
-#### rtweetとDBでのデータ蓄積のコツ(2)
-
+#### ■rtweetとDBでのデータ蓄積のコツ(2)
+<br>
+<br>
 ・データは必ずDBに入れる<br>
  →条件にもよるが、データは2GBまでは<br>
    増えると考えて組むべき<br>
 
 --
 
-#### rtweetとDBでのデータ蓄積のコツ(3)
-
+#### ■rtweetとDBでのデータ蓄積のコツ(3)
+<br>
+<br>
  ・最終的にDBからデータを取得するために、<br>
  あらかじめ分類フラグなどを用意<br>
 
@@ -223,27 +195,22 @@ httrのOAuth1.0のバグが直ったのでrtweetもガンガン使っていき�
 
 --
 
-#### rtweetとDBでのデータ蓄積のコツ(4)
+#### ■rtweetとDBでのデータ蓄積のコツ(4)
+<br>
+<br>
 ツイートは必ず重複カットしてDBへ入れること<br>
 （※最大11GBまで溜めてしまいました。<br>
-重複カットすれば1.2GBなど）<br>
+重複カットすれば1.2GB）<br>
+<br>
+SQLiteなら、ファイルの<br>
+ .gitignore を忘れない！
+
 
 --
 
-update のコマンドをするときには、get queryではエラーを
-吐く、○○を使うこと
-
-DBロックとの戦い
-database is locked  と戦う
-
-トランザクション
-
-
-tryCatchでエラーを逃す
-
---
-
-#### rtweetとDBでのデータ蓄積のコツ(5)
+#### ■rtweetとDBでのデータ蓄積のコツ(5)
+<br>
+<br>
 とにかくcrontabで膠着させずに<br>
 ユーザーのデータを取得することを目指す<br>
 
@@ -255,40 +222,43 @@ tryCatchでエラーを逃す
 
 >>>
 
-### shinyアプリでのユーザー識別
+### ■shinyアプリでのユーザー識別
 
 
 --
 
-#### ユーザーの識別問題
+#### ■妊婦識別についての課題
 
-ドラマ：コウノドリをはじめとして、
-現在の妊婦以外が、妊娠について<br>
+ドラマ：コウノドリをはじめとして、<br>
+妊婦以外が、妊娠について<br>
 語ることもしばしばある。<br>
 <br>
-友人、親戚、ペットも妊娠、出産する<br>
+友人、親戚、ペットの話かも？<br>
 <br>
 →最終的には目grepするしかない！
 
 --
 
-#### 目grep用のアプリを作って対策
+#### ■目grep用のアプリを作って対策
 
 --
 
-画面キャプチャ
-
-![アプリ_画面キャプチャ](madayoui_sitenai.png)
+<div style="text-align:center;">
+  <img src="Screenshot1.png" style="width:70%;"/>
+</div>
 
 
 --
 
-![アプリ_画面キャプチャ_2](madayoui_sitenai.png)
+<div style="text-align:center;">
+  <img src="Screenshot2.png" style="width:70%;"/>
+</div>
+
 
 --
 
 
-### shinyアプリの方針
+### ■shinyアプリの方針
 
 ■リッチにするか？<br>
 <font size="6">
@@ -299,6 +269,11 @@ tryCatchでエラーを逃す
 オンライン<br>
 </font>
 
+--
+
+### ■shinyアプリの方針
+
+
 ■素朴にするか？<br>
 <font size="6">
 最低限の構成で済むようにする<br>
@@ -307,51 +282,94 @@ tryCatchでエラーを逃す
 自分しか使わない<br>
 オフライン<br>
 </font>
-<br>
-<br>
-→技術的問題と工数で、素朴にした<br>
 
 --
 
-#### shinyアプリのコツ（１）
+### ■shinyアプリの方針
 
-・DBロックとの戦い<br>
+→自分の技量と工数で、素朴にした<br>
 
 --
 
-#### shinyアプリのコツ（１）
+#### ■shinyアプリのコツ（1）
+<br>
+<br>
+トランザクションとの戦い<br>
+database is locked<br>
+-journalファイルでアクセスできない<br>
 
 
+--
 
+#### ■shinyアプリのコツ（2）
+<br>
+<br>
 デバッグのしにくさ<br>
-→printを使う<br>
+→簡単な対策として、printデバッグで頑張る<br>
+<br>
+cat(file=stderr(),"hoge","huga")
 
 
 --
 
-#### shinyアプリのコツ（１）
-
+#### ■shinyアプリのコツ（3）
+<br>
+<br>
 なぜかタイムゾーンがずれる問題
 
+shiny上でSys.time() を使うと<br>
+UTCとなる。<br>
+Sys.timezone()はJapanとなるので、<br>
+何かしらおかしい様子<br>
+→手動で9時間足す
 
+--
+
+#### ■shinyアプリのコツ（4）
+<br>
+<br>
+ブラウザの機能で、いろいろ単純にする<br>
+
+今回なら、再読込（リロード）で<br>
+チェックするユーザーを切り替えてます
 
 --
 
-#### shinyアプリのコツ（１）
-
-
-dbGetQuery とdb Execute
-
-
---
+#### ■shinyアプリのコツ（5）
+<br>
+<br>
+dbGetQueryでupdateなどを使い、<br>
+エラーを吐く場合、<br>
+dbExecuteを使ってみる。<br>
+<https://www.rdocumentation.org/packages/DBI/versions/0.5-1/topics/dbExecute><br>
 
 
 >>>
 
-### データ分析結果
+### ■データ分析結果
 
-・期間ごとに分けて、形態素解析<br>
-＆ワードクラウド
+
+関連キーワード「妊娠」「悪阻」などを<br>
+つぶやいたユーザー数：14.8万人<br>
+
+上記ユーザーのツイート（※現在も集積途中）<br>
+
+240万件<br>
+<br>
+
+そのうち、出産予定日が記載されているか、<br>
+推測できているユーザー<br>
+XX人
+
+
+
+
+
+
+--
+
+・期間ごとに分けて、<br>
+形態素解析＆ワードクラウド
 
 --
 
@@ -363,13 +381,16 @@ dbGetQuery とdb Execute
 
 >>>
 
-### まとめ
+### ■まとめ
 
-<font size="6">
+<font size="8">
 ・rtweetは、例外処理で制御する<br>
+<br>
 ・twitterのデータは膨大<br>
 →データの取捨選択軸は先に決めておく<br>
+<br>
 ・shinyアプリは機能の割り切りが大事<br>
+<br>
 ・妊娠中、嫁は不安
 
 </font>
@@ -377,13 +398,17 @@ dbGetQuery とdb Execute
 >>>
 
 ### 今回の資料の場所とソースコード
-（※ソースコードは汎用化できませんでした）
-<http://madayoui_sitenai><br>
-<http://madayoui_sitenai><br>
+<https://github.com/x-chi/lib/tree/master/rlang/tokyoR66LT><br>
+<br>
+※ソースコードは汎用化できませんでしたので、<br>
+参考程度でお願いします<br>
+
+
+
 
 >>>
 
-enjoy!
+# enjoy!
 
 
 

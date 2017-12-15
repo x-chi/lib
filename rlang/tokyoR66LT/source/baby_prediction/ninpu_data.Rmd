@@ -1,0 +1,322 @@
+---
+title: "ninpu_＄うdata"
+author: "nakakita_kazuyoshi"
+date: "2017年12月3日"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+  warning=FALSE,
+  message=FALSE)
+```
+
+
+
+
+```{r preTretment, include=FALSE}
+
+
+	library(tidyr)
+	library(dplyr)
+	library(RSQLite)
+	library(DBI)
+	library(readr)
+	library(ggplot2)
+	library(RColorBrewer)
+
+
+
+#ここにDBから取得したデータを読込
+
+
+dir1 <- "/home/aaaa/Documents/repo_bitbucket/R_tw/baby_prediction"
+setwd(dir1)
+
+
+		dbname="tw_search_acount_baby2.db"
+		driver=dbDriver("SQLite")
+		con2=dbConnect(driver,dbname)
+
+		tw_acount <- dbGetQuery(con2,
+			paste0("SELECT * FROM search_acount WHERE pregnancyFlag =1"
+				)
+			)
+
+		dbDisconnect(con2)
+
+
+	#出産予定日がないものを外す
+	tw_acount2 <- tw_acount %>%
+	filter(Expected_date_of_birth > 0 )
+
+
+
+
+
+
+
+
+
+margeDf1 <- data.frame()
+
+vc1 <-  tw_acount2$user_id
+
+
+
+vc2 <- "("
+
+for( i1 in seq(vc1)){
+
+	if(i1==1){
+		vc2 <- paste0(vc2,"'",vc1[i1] ,"'")
+	}
+		vc2 <- paste0(vc2,",","'",vc1[i1],"'" )
+}
+
+vc2 <- paste0(vc2,")")  
+
+
+
+
+
+	dir1 <- "/home/aaaa/Documents/repo_bitbucket/R_tw/baby_prediction"
+	setwd(dir1)
+
+		dbname="tw_search_acount_baby2.db"
+		driver=dbDriver("SQLite")
+		con2=dbConnect(driver,dbname)
+
+		tw_data1 <- dbGetQuery(con2,
+			paste0("SELECT * FROM userAcount_tw WHERE user_id IN ", vc2
+				)
+		)
+
+		dbDisconnect(con2)
+
+		tw_margeDf <- rbind(margeDf1,tw_data1)
+
+
+
+
+		tw_margeDf1 <- tw_margeDf
+		tw_margeDf1$created_at2 <- tw_margeDf1$created_at
+		tw_margeDf1$created_at <- as.Date(tw_margeDf1$created_at)
+
+
+library(lubridate)
+
+
+
+
+
+tw_margeDf1$period_toBirth <- ""
+
+
+for(i8 in seq( vc1)){
+
+	temp_twProfile1 <- tw_acount2 %>%
+	filter( user_id %in% vc1[i8] )
+
+	birth_date1 <- ymd(temp_twProfile1$Expected_date_of_birth)
+
+
+	for( i9   in  seq(tw_margeDf1[,1]) ){
+		if(tw_margeDf1$user_id[i9] == vc1[i8] ){
+			tw_margeDf1$period_toBirth[i9] <- birth_date1 - tw_margeDf1$created_at[i9] 
+		}
+	}
+}
+
+
+tw_margeDf1$period_toBirth <- as.numeric(tw_margeDf1$period_toBirth )
+
+
+
+library(fancycut)
+
+
+periodLabel <- fancycut(x = tw_margeDf1$period_toBirth,
+                     intervals = c("[0, 85)", "[85, 169)", "[169, 252]"),
+                     buckets = c("ninshin_kouki", "ninshin_cyuuki", "ninshin_syoki"),
+                     unmatched.bucket = "out_range")
+
+
+
+tw_margeDf1<- cbind(tw_margeDf1,periodLabel)
+
+
+
+
+
+
+tw_margeDf1_kouki <- tw_margeDf1 %>%
+filter( periodLabel == "ninshin_kouki" )
+
+tw_margeDf1_cyuuki <- tw_margeDf1 %>%
+filter( periodLabel == "ninshin_cyuuki" )
+
+tw_margeDf1_syoki <- tw_margeDf1 %>%
+filter( periodLabel == "ninshin_syoki" )
+
+
+
+
+
+# Rmecabのインストール方法が変わっているので注意
+# http://rmecab.jp/wiki/index.php?RMeCab
+# install.packages("RMeCab", repos = "http://rmecab.jp/R", type = "source") 
+
+# mecab-ipadic-NEologd を入れる
+# https://qiita.com/elm200/items/2c2aa2093e670036bb30
+
+# Rmecab
+# 機能説明
+# http://rmecab.jp/wiki/index.php?RMeCabFunctions
+
+
+
+
+
+wordCloud <- function(twitWord,periond_name,twType){
+
+
+	dir1 <- "/home/aaaa/Desktop"
+	setwd(dir1)
+
+	write(tw_margeDf1$text,"temp1.txt") 
+
+	twitWord <- RMeCabFreq("temp1.txt")
+
+
+	# 除外キーワードリストを読み込みます
+	excludeWord <- data.frame(exclude=c("http","https","HTTPS",
+	"q","w","e","r","t","y","u","i","o","p","l","k","j","h","g","f",
+	"d","s","a","z","x","c","v","b","n","m",
+	"Q","W","E","R","T","Y","U","I","O","P","L","K","J","H",
+	"G","F","D","S","A","Z","X","C","V","B","N","M",
+	"JP","jp","com","COM","co"
+	  )
+	)
+
+	excludeWord$exclude <- as.character(excludeWord$exclude)
+
+
+
+
+
+
+
+
+
+	if(twType =="meishi"){
+		# 変数「Tweets」を、一般名詞と固有名詞に絞り込みます
+		twitWord <- twitWord[twitWord[, 2] == "名詞"&( twitWord[, 3] == "一般" | twitWord[, 3] == "固有名詞" ),]
+	}
+
+	if(twType =="doushi"){
+		twitWord <- twitWord[twitWord[, 2] == "動詞"&( twitWord[, 3] == "自立" | twitWord[, 3] == "固有名詞" ),]
+	}
+
+	if(twType =="keiyoushi"){
+		twitWord <- twitWord[twitWord[, 2] == "形容詞"&( twitWord[, 3] == "自立" | twitWord[, 3] == "固有名詞" ),]
+	}
+
+
+
+	# 変数「twitWord」に、除外用フラグ列を追加します
+	twitWord <- cbind( twitWord, c(rep(0, times = nrow( twitWord ))))
+	# 除外キーワードリストとマッチするものは除外フラグをオンにします
+	twitWord[na.omit( match( excludeWord$exclude, twitWord$Term )), 5] <- 1
+	# 頻出度が○回以上の語に絞り込みます
+	twitWord <- twitWord[ twitWord[,4] > 25 & twitWord[,5] == 0, ]
+
+
+
+	# ワードクラウド生成用に、パッケージ「wordcloud(注5)」を読み込みます
+	library( wordcloud )
+	# カラーパレット用に、パッケージ「RColorBrewer(注6)」を読み込みます
+	library( RColorBrewer )
+
+
+	png(filename = paste0(  periond_name,"_",twType,"_wordCloud.png"), width = 1000, height = 1000, units = "px", pointsize = 12, bg = "white")
+
+	# ワードクラウドを描画します
+#	wordcloud( twitWord[,1],twitWord[,4], scale = c( 6, 1 ), min.freq = 3, max.words = Inf, 
+	wordcloud( twitWord[,1],twitWord[,4], scale = c( 6, 1 ), min.freq = 20, max.words = Inf, 
+	random.order = FALSE, rot.per = .05, colors = brewer.pal( 8, "Dark2" ))
+
+	dev.off()
+}
+
+
+wordCloud( tw_margeDf1_kouki,"tw_margeDf1_kouki","meishi")
+wordCloud( tw_margeDf1_kouki,"tw_margeDf1_kouki","doushi")
+wordCloud( tw_margeDf1_kouki,"tw_margeDf1_kouki","keiyoushi")
+
+wordCloud( tw_margeDf1_cyuuki,"ninshin_cyuuki","meishi" )
+wordCloud( tw_margeDf1_cyuuki,"ninshin_cyuuki","doushi" )
+wordCloud( tw_margeDf1_cyuuki,"ninshin_cyuuki","keiyoushi" )
+
+wordCloud( tw_margeDf1_syoki,"ninshin_syoki","meishi" )
+wordCloud( tw_margeDf1_syoki,"ninshin_syoki","doushi" )
+wordCloud( tw_margeDf1_syoki,"ninshin_syoki","keiyoushi" )
+
+
+
+tw_margeDf1$created_at2 <- as.POSIXlt(tw_margeDf1$created_at2)
+tw_margeDf1$tw_hour <- ""
+
+for( i2 in seq(tw_margeDf1[,1]) ){
+	tw_margeDf1$tw_hour[i2] <- tw_margeDf1$created_at2[i2]$hour
+}
+
+
+tw_margeDf1
+
+tw_margeDf_summary1 <- tw_margeDf1 %>%
+select(periodLabel,tw_hour) %>%
+group_by(periodLabel,tw_hour) %>%
+summarise( tw_hour_count = n() )
+
+
+
+
+
+```
+
+
+
+
+## 出産日（概算）が観測できた妊婦の数
+
+```{r cars}
+length(tw_acount2[,1] )
+```
+
+## 時期別のワードクラウド
+
+＜今回の定義＞
+妊娠初期（252日前 〜169日前）
+妊娠中期（168日前〜85日前）
+妊娠後期（84日前〜出産）
+
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+
+
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+## 時期別のツイート時間
+
+
+
+
+
+
+
